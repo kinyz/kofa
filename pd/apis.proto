@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package pd;
+
+// 服务发现通信包
+message Discovery{
+  string  Topic = 1;  //消费主题
+  string  Method = 2;  //调用方法
+  string  ServerId = 3;  // 服务器ID
+}
