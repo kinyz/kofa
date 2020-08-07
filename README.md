@@ -1,11 +1,11 @@
-# Kofa -- 基于kafka异步去中心化框架 qq:8788107
+# Kofa -- 基于kafka异步去中心化框架
 
-说明文档正在更新。。。
+说明文档正在更新。。。qq:8788107
 
 
-const ServiceName = "Kofa_"
+    const ServiceName = "Kofa_"
 
-func main() {
+    func main() {
 
 	k := kofa.NewServer(ServiceName, ServiceName, []string{"49.22.22.15:13900"})
 	k.AddRouter("User", &User{})
@@ -21,18 +21,15 @@ func main() {
 		}
 
 	}()
-	k.Serve()
+	k.Serve()}
 
-}
+    type User struct {
+    }
 
-type User struct {
-}
+    func (u *User) Login(request kface.IRequest) {
+	    fmt.Println(request.GetProducer())
+    }
 
-func (u *User) Login(request kface.IRequest) {
-	fmt.Println(request.GetProducer())
-}
+    func (u *User) Reg(request kface.IRequest) {
 
-func (u *User) Reg(request kface.IRequest) {
-
-}
-
+    }
