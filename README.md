@@ -1,4 +1,4 @@
-# Kofa -- 基于kafka异步去中心化框架
+# Kofa -- 基于kafka异步去中心化框架 qq:8788107
 
 说明文档正在更新。。。
 
@@ -35,4 +35,4 @@ func (u *User) Login(request kface.IRequest) {
 func (u *User) Reg(request kface.IRequest) {
 
 }
-qq:8788107
+
