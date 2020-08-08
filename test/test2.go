@@ -2,15 +2,15 @@ package main
 
 import (
 	"fmt"
-	"kofa"
 	"kofa/ikofa"
+	"kofa/kofa"
 	"time"
 )
 
 const ServiceName2 = "Oauth"
 
 func main() {
-	k := kofa.NewServer(ServiceName2, kofa.NewOffset, []string{"31.21.160.15:13900"}, true)
+	k := ikofa.NewServer(ServiceName2, ikofa.NewOffset, []string{"31.21.160.15:13900"}, true)
 	k.AddRouter("Oauth", &Oauth{})
 
 	//k.CustomHandle(&Kafka{})
@@ -36,6 +36,6 @@ func main() {
 type Oauth struct {
 }
 
-func (o *Oauth) Account(request ikofa.IRequest) {
+func (o *Oauth) Account(request kofa.Request) {
 
 }

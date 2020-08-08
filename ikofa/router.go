@@ -1,11 +1,11 @@
-package kofa
+package ikofa
 
 import (
 	"context"
 	"fmt"
 	"github.com/Shopify/sarama"
 	"github.com/golang/protobuf/proto"
-	"kofa/ikofa"
+	kofa2 "kofa/kofa"
 	apis "kofa/pd"
 	"log"
 	"reflect"
@@ -16,7 +16,7 @@ type Router struct {
 	obj   map[string]interface{}
 	param map[string][]reflect.Value
 	//methodMap map[string][]string
-	kreq       ikofa.IKafkaRequest
+	kreq       kofa2.IKafkaRequest
 	c          bool
 	serviceMap map[string][]*apis.Service
 	kofa       *Server
@@ -102,7 +102,7 @@ func (r *Router) AddRouter(serverId, topic, alias string, obj interface{}, param
 		fmt.Println("add method: ", path)
 	}
 }
-func (r *Router) CustomHandle(kafka ikofa.IKafkaRequest) {
+func (r *Router) CustomHandle(kafka kofa2.IKafkaRequest) {
 	r.kreq = kafka
 	r.c = true
 }
@@ -136,7 +136,9 @@ func (consumer *Consumer) ConsumeClaim(session sarama.ConsumerGroupSession, clai
 
 		if err != nil {
 			if consumer.router.c {
-				consumer.router.kreq.CustomHandle(msg)
+				consumer.router.kreq.CustomHandle(&KafkaMessage{
+					msg: msg,
+				})
 			}
 		} else {
 			path := call.Alias + "." + call.Method
@@ -145,7 +147,7 @@ func (consumer *Consumer) ConsumeClaim(session sarama.ConsumerGroupSession, clai
 				session.MarkMessage(msg, "")
 				break
 			}
-			req := &Request{
+			req := &KRequest{
 				msg:      msg,
 				producer: call.Producer,
 				kofa:     consumer.router.kofa,

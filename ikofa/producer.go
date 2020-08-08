@@ -1,4 +1,4 @@
-package kofa
+package ikofa
 
 import (
 	"fmt"

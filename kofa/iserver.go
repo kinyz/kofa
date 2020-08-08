@@ -1,4 +1,4 @@
-package ikofa
+package kofa
 
 type IServer interface {
 	AddRouter(alias string, obj interface{}, param ...interface{})

@@ -1,11 +1,11 @@
-package kofa
+package ikofa
 
 import (
 	"errors"
 	"fmt"
 	"github.com/golang/protobuf/proto"
 	"github.com/satori/go.uuid"
-	"kofa/ikofa"
+	"kofa/kofa"
 	apis "kofa/pd"
 	"os"
 	"os/signal"
@@ -20,13 +20,13 @@ type Server struct {
 	router                 *Router
 	serverId, topic, group string
 	discover               *Discovery
-	send                   ikofa.ISend
+	send                   kofa.ISend
 	closeFun               func()
 	offset                 int64
 	done                   chan bool
 }
 
-func NewServer(serviceName string, offset int64, kafkaAddr []string, group bool) ikofa.IServer {
+func NewServer(serviceName string, offset int64, kafkaAddr []string, group bool) kofa.IServer {
 	s := &Server{
 		topic:    serviceName,
 		offset:   offset,
@@ -46,7 +46,7 @@ func NewServer(serviceName string, offset int64, kafkaAddr []string, group bool)
 func (s *Server) AddRouter(alias string, obj interface{}, param ...interface{}) {
 	s.router.AddRouter(s.serverId, s.topic, alias, obj, param...)
 }
-func (s *Server) CustomHandle(kafka ikofa.IKafkaRequest) {
+func (s *Server) CustomHandle(kafka kofa.IKafkaRequest) {
 	s.router.CustomHandle(kafka)
 }
 func (s *Server) Serve() {
@@ -92,7 +92,7 @@ func (s *Server) Call(alias, method string, data []byte, service ...string) erro
 	return nil
 }
 
-func (s *Server) Send() ikofa.ISend {
+func (s *Server) Send() kofa.ISend {
 	return s.send
 }
 func (s *Server) GetServerId() string {

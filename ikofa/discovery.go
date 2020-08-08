@@ -1,9 +1,9 @@
-package kofa
+package ikofa
 
 import (
 	"fmt"
 	"github.com/golang/protobuf/proto"
-	"kofa/ikofa"
+	"kofa/kofa"
 	"kofa/pd"
 )
 
@@ -140,7 +140,7 @@ type DiscoveryRequest struct {
 	d *Discovery
 }
 
-func (dReq *DiscoveryRequest) Add(request ikofa.IRequest) {
+func (dReq *DiscoveryRequest) Add(request kofa.Request) {
 	if dReq.d.upService {
 		service := &apis.Service{}
 		err := proto.Unmarshal(request.GetData(), service)
@@ -151,7 +151,7 @@ func (dReq *DiscoveryRequest) Add(request ikofa.IRequest) {
 	}
 
 }
-func (dReq *DiscoveryRequest) Logout(request ikofa.IRequest) {
+func (dReq *DiscoveryRequest) Logout(request kofa.Request) {
 	if dReq.d.upService {
 		service := &apis.Service{}
 		err := proto.Unmarshal(request.GetData(), service)
@@ -162,7 +162,7 @@ func (dReq *DiscoveryRequest) Logout(request ikofa.IRequest) {
 	}
 }
 
-func (dReq *DiscoveryRequest) GetService(request ikofa.IRequest) {
+func (dReq *DiscoveryRequest) GetService(request kofa.Request) {
 
 	dReq.d.Register(request.GetProducer())
 

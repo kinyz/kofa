@@ -1,4 +1,4 @@
-package ikofa
+package kofa
 
 type ISend interface {
 	Async(topic string, key, data []byte)

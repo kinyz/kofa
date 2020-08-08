@@ -1,4 +1,4 @@
-package ikofa
+package kofa
 
 import apis "kofa/pd"
 

@@ -1,4 +1,4 @@
-package ikofa
+package kofa
 
 type IDiscovery interface {
 	Start(addr []string, b bool)
