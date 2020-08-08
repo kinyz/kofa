@@ -3,97 +3,98 @@ package kofa
 import (
 	"errors"
 	"fmt"
+	"github.com/golang/protobuf/proto"
 	"github.com/satori/go.uuid"
-	"kofa/core"
-	"kofa/kface"
+	"kofa/ikofa"
+	apis "kofa/pd"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 )
 
 const NewOffset = -1
 const OldOffset = -2
 
 type Server struct {
-	addr            []string
-	router          *core.Router
-	serverId, topic string
-	discover        *core.Discovery
-	send            kface.ISend
+	addr                   []string
+	router                 *Router
+	serverId, topic, group string
+	discover               *Discovery
+	send                   ikofa.ISend
+	closeFun               func()
+	offset                 int64
+	done                   chan bool
 }
 
-func NewServer(topic, name string, kafkaAddr []string) kface.IServer {
-	s := &Server{topic: topic, addr: kafkaAddr, router: core.NewRouter(), send: core.NewIProducer(kafkaAddr), serverId: name + uuid.NewV4().String()}
-	s.discover = core.NewIDiscovery(s.router, s.send, s.serverId)
+func NewServer(serviceName string, offset int64, kafkaAddr []string, group bool) ikofa.IServer {
+	s := &Server{
+		topic:    serviceName,
+		offset:   offset,
+		addr:     kafkaAddr,
+		send:     NewIProducer(kafkaAddr),
+		serverId: serviceName + "-" + uuid.NewV4().String()}
+	s.group = s.GetServerId()
+	if group {
+		s.group = s.serverId
+	}
+	s.router = NewRouter(s)
+	s.discover = NewIDiscovery(s)
+	s.discover.Start(s.addr, true)
 	return s
 }
 
-func (s *Server) AddRouter(name string, obj interface{}, param ...interface{}) {
-	s.router.AddRouter(name, obj, param...)
+func (s *Server) AddRouter(alias string, obj interface{}, param ...interface{}) {
+	s.router.AddRouter(s.serverId, s.topic, alias, obj, param...)
 }
-func (s *Server) ListenRouter(group string, offset int64, topic ...string) {
-
-	topic = append(topic, s.topic)
-
-	s.router.StartListen(s.addr, topic, group, offset)
-
-	s.discover.Start(s.addr, true, s.serverId)
-	//fmt.Println(topic)
-
+func (s *Server) CustomHandle(kafka ikofa.IKafkaRequest) {
+	s.router.CustomHandle(kafka)
 }
-func (s *Server) Start() {
-	s.discover.Register(s.GetServerTopic(), s.serverId, core.ServiceDiscoveryTopic)
-	s.discover.CheckAllService(s.serverId)
-	fmt.Println("kofa server running ServerId:", s.GetServerId(), "Topic:", s.topic)
-
-}
-
 func (s *Server) Serve() {
-	s.Start()
+	s.discover.Register(ServiceDiscoveryTopic)
+	s.discover.CheckAllService()
+	s.closeFun = s.router.StartListen(s.addr, []string{s.topic}, s.group, s.offset)
 	sigs := make(chan os.Signal, 1)
-	done := make(chan bool, 1)
+	s.done = make(chan bool, 1)
 
 	signal.Notify(sigs, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 	go func() {
 		<-sigs
 
 		//	fmt.Println(sig)
-		done <- true
+		s.done <- true
 	}()
 
-	//fmt.Println("awaiting signal")
+	fmt.Println("kofa server running ServerId:", s.GetServerId(), "Topic:", s.topic)
+	<-s.done
 
-	<-done
-	s.Close()
+	s.discover.Logout()
+	s.discover.Close()
+	s.closeFun()
 }
 
 func (s *Server) Close() {
-	s.discover.Logout()
-	time.Sleep(time.Second * 5)
+	s.done <- true
+
 }
 
-func (s *Server) Call(producer, method string, data []byte) error {
-	//fmt.Println(s.discover.GetTopicByMethod(method))
-	if s.discover.GetTopicByMethod(method) != "" {
-		s.send.Async(s.discover.GetTopicByMethod(method), producer+"."+method, data)
+func (s *Server) Call(alias, method string, data []byte, service ...string) error {
+	if s.discover.GetTopicByMethod(alias, method) == "" {
+		return errors.New("not find method:" + method)
+	}
+	call, _ := proto.Marshal(&apis.Call{Alias: alias, Method: method, Producer: s.serverId})
+	if len(service) <= 0 {
+		s.send.Async(s.discover.GetTopicByMethod(alias, method), call, data)
 		return nil
 	}
-	return errors.New("not find method:" + method)
+	for _, v := range service {
+		s.send.Async(v, call, data)
+	}
+	return nil
 }
-func (s *Server) GetServerTopic() string {
-	return s.topic
-}
-func (s *Server) Send() kface.ISend {
+
+func (s *Server) Send() ikofa.ISend {
 	return s.send
 }
 func (s *Server) GetServerId() string {
 	return s.serverId
-}
-
-func (s *Server) GetTopicByMethod(method string) string {
-	return s.GetTopicByMethod(method)
-}
-func (s *Server) GetMethodByTopic(topic string) []string {
-	return s.GetMethodByTopic(topic)
 }

@@ -1,4 +1,4 @@
-package core
+package kofa
 
 import (
 	"fmt"
@@ -57,11 +57,11 @@ func (p *Producer) NewAsyncProducer(addr []string) error {
 
 // AsyncSendMsg 同步生产者
 // 返回 part, offset, err
-func (p *Producer) Sync(topic string, key string, data []byte) (int32, int64, error) {
+func (p *Producer) Sync(topic string, key, data []byte) (int32, int64, error) {
 
 	msg := &sarama.ProducerMessage{
 		Topic:     topic,
-		Key:       sarama.StringEncoder(key),
+		Key:       sarama.ByteEncoder(key),
 		Value:     sarama.ByteEncoder(data),
 		Timestamp: time.Time{},
 	}
@@ -77,7 +77,7 @@ func (p *Producer) Sync(topic string, key string, data []byte) (int32, int64, er
 
 // AsyncSendMsg 异步生产者
 // 并发量大时，必须采用这种方式
-func (p *Producer) Async(topic string, key string, data []byte) {
+func (p *Producer) Async(topic string, key, data []byte) {
 	async := p.GetAsyncProducer()
 	go func(as sarama.AsyncProducer) {
 		errors := as.Errors()
@@ -95,7 +95,7 @@ func (p *Producer) Async(topic string, key string, data []byte) {
 
 	msg := &sarama.ProducerMessage{
 		Topic:     topic,
-		Key:       sarama.StringEncoder(key),
+		Key:       sarama.ByteEncoder(key),
 		Value:     sarama.ByteEncoder(data),
 		Timestamp: time.Time{},
 	}

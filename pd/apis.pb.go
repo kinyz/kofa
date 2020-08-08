@@ -4,7 +4,7 @@
 // 	protoc        v3.11.4
 // source: apis.proto
 
-package pd
+package apis
 
 import (
 	proto "github.com/golang/protobuf/proto"
@@ -25,19 +25,20 @@ const (
 // of the legacy proto package is being used.
 const _ = proto.ProtoPackageIsVersion4
 
-// 服务发现通信包
-type Discovery struct {
+// Service包
+type Service struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Topic    string `protobuf:"bytes,1,opt,name=Topic,proto3" json:"Topic,omitempty"`       //消费主题
-	Method   string `protobuf:"bytes,2,opt,name=Method,proto3" json:"Method,omitempty"`     //调用方法
-	ServerId string `protobuf:"bytes,3,opt,name=ServerId,proto3" json:"ServerId,omitempty"` // 服务器ID
+	Topic    string `protobuf:"bytes,1,opt,name=Topic,proto3" json:"Topic,omitempty"`       //  消费主题
+	Alias    string `protobuf:"bytes,2,opt,name=Alias,proto3" json:"Alias,omitempty"`       //  别名
+	Method   string `protobuf:"bytes,3,opt,name=Method,proto3" json:"Method,omitempty"`     //  调用方法
+	ServerId string `protobuf:"bytes,4,opt,name=ServerId,proto3" json:"ServerId,omitempty"` //  服务器ID
 }
 
-func (x *Discovery) Reset() {
-	*x = Discovery{}
+func (x *Service) Reset() {
+	*x = Service{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_apis_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -45,13 +46,13 @@ func (x *Discovery) Reset() {
 	}
 }
 
-func (x *Discovery) String() string {
+func (x *Service) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Discovery) ProtoMessage() {}
+func (*Service) ProtoMessage() {}
 
-func (x *Discovery) ProtoReflect() protoreflect.Message {
+func (x *Service) ProtoReflect() protoreflect.Message {
 	mi := &file_apis_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -63,28 +64,98 @@ func (x *Discovery) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Discovery.ProtoReflect.Descriptor instead.
-func (*Discovery) Descriptor() ([]byte, []int) {
+// Deprecated: Use Service.ProtoReflect.Descriptor instead.
+func (*Service) Descriptor() ([]byte, []int) {
 	return file_apis_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *Discovery) GetTopic() string {
+func (x *Service) GetTopic() string {
 	if x != nil {
 		return x.Topic
 	}
 	return ""
 }
 
-func (x *Discovery) GetMethod() string {
+func (x *Service) GetAlias() string {
+	if x != nil {
+		return x.Alias
+	}
+	return ""
+}
+
+func (x *Service) GetMethod() string {
 	if x != nil {
 		return x.Method
 	}
 	return ""
 }
 
-func (x *Discovery) GetServerId() string {
+func (x *Service) GetServerId() string {
 	if x != nil {
 		return x.ServerId
+	}
+	return ""
+}
+
+type Call struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Producer string `protobuf:"bytes,1,opt,name=Producer,proto3" json:"Producer,omitempty"` //  生产者
+	Alias    string `protobuf:"bytes,2,opt,name=Alias,proto3" json:"Alias,omitempty"`       //  别名
+	Method   string `protobuf:"bytes,3,opt,name=Method,proto3" json:"Method,omitempty"`     //  调用方法
+}
+
+func (x *Call) Reset() {
+	*x = Call{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_apis_proto_msgTypes[1]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Call) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Call) ProtoMessage() {}
+
+func (x *Call) ProtoReflect() protoreflect.Message {
+	mi := &file_apis_proto_msgTypes[1]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Call.ProtoReflect.Descriptor instead.
+func (*Call) Descriptor() ([]byte, []int) {
+	return file_apis_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *Call) GetProducer() string {
+	if x != nil {
+		return x.Producer
+	}
+	return ""
+}
+
+func (x *Call) GetAlias() string {
+	if x != nil {
+		return x.Alias
+	}
+	return ""
+}
+
+func (x *Call) GetMethod() string {
+	if x != nil {
+		return x.Method
 	}
 	return ""
 }
@@ -92,13 +163,20 @@ func (x *Discovery) GetServerId() string {
 var File_apis_proto protoreflect.FileDescriptor
 
 var file_apis_proto_rawDesc = []byte{
-	0x0a, 0x0a, 0x61, 0x70, 0x69, 0x73, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x02, 0x70, 0x64,
-	0x22, 0x55, 0x0a, 0x09, 0x44, 0x69, 0x73, 0x63, 0x6f, 0x76, 0x65, 0x72, 0x79, 0x12, 0x14, 0x0a,
+	0x0a, 0x0a, 0x61, 0x70, 0x69, 0x73, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x04, 0x61, 0x70,
+	0x69, 0x73, 0x22, 0x69, 0x0a, 0x07, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x14, 0x0a,
 	0x05, 0x54, 0x6f, 0x70, 0x69, 0x63, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x54, 0x6f,
-	0x70, 0x69, 0x63, 0x12, 0x16, 0x0a, 0x06, 0x4d, 0x65, 0x74, 0x68, 0x6f, 0x64, 0x18, 0x02, 0x20,
-	0x01, 0x28, 0x09, 0x52, 0x06, 0x4d, 0x65, 0x74, 0x68, 0x6f, 0x64, 0x12, 0x1a, 0x0a, 0x08, 0x53,
-	0x65, 0x72, 0x76, 0x65, 0x72, 0x49, 0x64, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x53,
-	0x65, 0x72, 0x76, 0x65, 0x72, 0x49, 0x64, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x70, 0x69, 0x63, 0x12, 0x14, 0x0a, 0x05, 0x41, 0x6c, 0x69, 0x61, 0x73, 0x18, 0x02, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x05, 0x41, 0x6c, 0x69, 0x61, 0x73, 0x12, 0x16, 0x0a, 0x06, 0x4d, 0x65, 0x74,
+	0x68, 0x6f, 0x64, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x4d, 0x65, 0x74, 0x68, 0x6f,
+	0x64, 0x12, 0x1a, 0x0a, 0x08, 0x53, 0x65, 0x72, 0x76, 0x65, 0x72, 0x49, 0x64, 0x18, 0x04, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x08, 0x53, 0x65, 0x72, 0x76, 0x65, 0x72, 0x49, 0x64, 0x22, 0x50, 0x0a,
+	0x04, 0x43, 0x61, 0x6c, 0x6c, 0x12, 0x1a, 0x0a, 0x08, 0x50, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x65,
+	0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x50, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x65,
+	0x72, 0x12, 0x14, 0x0a, 0x05, 0x41, 0x6c, 0x69, 0x61, 0x73, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x05, 0x41, 0x6c, 0x69, 0x61, 0x73, 0x12, 0x16, 0x0a, 0x06, 0x4d, 0x65, 0x74, 0x68, 0x6f,
+	0x64, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x4d, 0x65, 0x74, 0x68, 0x6f, 0x64, 0x62,
+	0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -113,9 +191,10 @@ func file_apis_proto_rawDescGZIP() []byte {
 	return file_apis_proto_rawDescData
 }
 
-var file_apis_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+var file_apis_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_apis_proto_goTypes = []interface{}{
-	(*Discovery)(nil), // 0: pd.Discovery
+	(*Service)(nil), // 0: apis.Service
+	(*Call)(nil),    // 1: apis.Call
 }
 var file_apis_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
@@ -132,7 +211,19 @@ func file_apis_proto_init() {
 	}
 	if !protoimpl.UnsafeEnabled {
 		file_apis_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Discovery); i {
+			switch v := v.(*Service); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_apis_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Call); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -150,7 +241,7 @@ func file_apis_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_apis_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   1,
+			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
