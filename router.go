@@ -141,7 +141,7 @@ func (consumer *Consumer) ConsumeClaim(session sarama.ConsumerGroupSession, clai
 		} else {
 			path := call.Alias + "." + call.Method
 			if consumer.router.obj[path] == nil {
-				fmt.Println("not find method :", path)
+				fmt.Println("not find method 2:", path)
 				session.MarkMessage(msg, "")
 				break
 			}

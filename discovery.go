@@ -72,7 +72,8 @@ func (d *Discovery) Logout() {
 }
 
 func (d *Discovery) CheckAllService() {
-	err := d.IS.Call(ServiceDiscoveryName, "GetService", []byte(""), d.IS.serverId)
+
+	err := d.IS.Call(ServiceDiscoveryName, "GetService", []byte(""), ServiceDiscoveryTopic)
 	if err != nil {
 		fmt.Println("[服务发现] 获取服务失败:", err)
 	}
@@ -89,7 +90,7 @@ func (d *Discovery) Close() {
 }
 
 func (d *Discovery) Add(service *apis.Service) {
-	if len(d.serverMap[service.Method]) <= 0 {
+	if len(d.serverMap[service.Alias+"."+service.Method]) <= 0 {
 		path := service.Alias + "." + service.Method
 		d.serverMap[path] = make(map[string]string)
 		d.serverMap[path][service.ServerId] = service.ServerId
@@ -100,11 +101,11 @@ func (d *Discovery) Add(service *apis.Service) {
 		}
 	} else {
 
-		if d.serverMap[service.Method][service.ServerId] != "" {
+		if d.serverMap[service.Alias+"."+service.Method][service.ServerId] != "" {
 			return
 		}
 		//fmt.Println("[服务发现]注册服务:", service.Topic, service.Method,service.ServerId)
-		d.serverMap[service.Method][service.ServerId] = service.ServerId
+		d.serverMap[service.Alias+"."+service.Method][service.ServerId] = service.ServerId
 	}
 
 }
@@ -164,6 +165,7 @@ func (dReq *DiscoveryRequest) Logout(request ikofa.IRequest) {
 }
 
 func (dReq *DiscoveryRequest) GetService(request ikofa.IRequest) {
+
 	dReq.d.Register(request.GetProducer())
 
 }

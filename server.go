@@ -79,7 +79,7 @@ func (s *Server) Close() {
 
 func (s *Server) Call(alias, method string, data []byte, service ...string) error {
 	if s.discover.GetTopicByMethod(alias, method) == "" {
-		return errors.New("not find method:" + method)
+		return errors.New("not find method:" + alias + "." + method)
 	}
 	call, _ := proto.Marshal(&apis.Call{Alias: alias, Method: method, Producer: s.serverId})
 	if len(service) <= 0 {
