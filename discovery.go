@@ -61,7 +61,7 @@ func (d *Discovery) Logout() {
 			}
 			//fmt.Println("向服务中心注册服务",k,v)
 			if k != ServiceDiscoveryName {
-				err = d.IS.Call(ServiceDiscoveryName, "Add", data)
+				err = d.IS.Call(ServiceDiscoveryName, "Logout", data, ServiceDiscoveryTopic)
 				if err != nil {
 					fmt.Println("[服务发现] 删除服务失败:", k, v, err)
 				}
@@ -90,8 +90,9 @@ func (d *Discovery) Close() {
 }
 
 func (d *Discovery) Add(service *apis.Service) {
-	if len(d.serverMap[service.Alias+"."+service.Method]) <= 0 {
-		path := service.Alias + "." + service.Method
+	path := service.Alias + "." + service.Method
+
+	if len(d.serverMap[path]) <= 0 {
 		d.serverMap[path] = make(map[string]string)
 		d.serverMap[path][service.ServerId] = service.ServerId
 		if d.methodMap[path] == nil {
@@ -101,21 +102,18 @@ func (d *Discovery) Add(service *apis.Service) {
 		}
 	} else {
 
-		if d.serverMap[service.Alias+"."+service.Method][service.ServerId] != "" {
+		if d.serverMap[path][service.ServerId] != "" {
 			return
 		}
-		//fmt.Println("[服务发现]注册服务:", service.Topic, service.Method,service.ServerId)
-		d.serverMap[service.Alias+"."+service.Method][service.ServerId] = service.ServerId
+		d.serverMap[path][service.ServerId] = service.ServerId
 	}
 
 }
 func (d *Discovery) Del(service *apis.Service) {
+	path := service.Alias + "." + service.Method
 
-	if len(d.serverMap[service.Method]) > 0 {
-		path := service.Alias + "." + service.Method
-
+	if len(d.serverMap[path]) > 0 {
 		delete(d.serverMap[path], service.ServerId)
-		//fmt.Println("[服务发现]注销服务:", service.Topic, service.Method,service.ServerId)
 
 		if len(d.serverMap[path]) <= 0 {
 			//	delete(d.msgMap,service.MsgId)
