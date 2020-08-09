@@ -1,16 +1,16 @@
 package main
 
 import (
-	"fmt"
 	"kofa/ikofa"
 	"kofa/kofa"
+	"log"
 )
 
 const ServiceName = "Kofa"
 
 func main() {
 
-	k := ikofa.NewServer(ServiceName, ikofa.NewOffset, []string{"9.123.160.15:1302"}, true)
+	k := ikofa.NewServer(ServiceName, ikofa.NewOffset, []string{"49.22.22.22:2222"}, true)
 	k.AddRouter(2000, "User", &User{})
 
 	k.CustomHandle(&Kafka{})
@@ -24,12 +24,12 @@ type User struct {
 
 func (u *User) Login(request kofa.Request) {
 
-	fmt.Println(request.GetProducer())
+	log.Println(request.GetProducer())
 
 }
 
 func (u *User) Reg(request kofa.Request) {
-	fmt.Println(request.GetMsgId())
+	log.Println(request.GetMsgId())
 
 }
 
@@ -37,5 +37,5 @@ type Kafka struct {
 }
 
 func (k Kafka) CustomHandle(msg kofa.Message) {
-	fmt.Println(msg.GetTopic(), msg.GetTopic())
+	log.Println(msg.GetTopic(), msg.GetTopic())
 }

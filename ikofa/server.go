@@ -2,12 +2,12 @@ package ikofa
 
 import (
 	"errors"
-	"fmt"
 	"github.com/Shopify/sarama"
 	"github.com/golang/protobuf/proto"
 	"github.com/satori/go.uuid"
 	"kofa/kofa"
 	apis "kofa/pd"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -45,7 +45,14 @@ func NewServer(serviceName string, offset int64, kafkaAddr []string, group bool)
 }
 
 func (s *Server) AddRouter(msgId uint64, alias string, obj interface{}, param ...interface{}) {
+	if msgId < 2000 {
+		log.Println(alias + " Failed to add. MsgId cannot be less than 2000")
+		panic(alias + " Failed to add. MsgId cannot be less than 2000")
+		return
+	}
+
 	s.router.AddRouter(msgId, s.serverId, s.topic, alias, obj, param...)
+
 }
 func (s *Server) CustomHandle(kafka kofa.IKafkaRequest) {
 	s.router.CustomHandle(kafka)
@@ -63,11 +70,11 @@ func (s *Server) Serve() {
 	go func() {
 		<-sigs
 
-		//	fmt.Println(sig)
+		//	log.Println(sig)
 		s.done <- true
 	}()
 
-	fmt.Println("kofa server running ServerId:", s.GetServerId(), "Topic:", s.topic)
+	log.Println("kofa server running ServerId:", s.GetServerId(), "Topic:", s.topic)
 	<-s.done
 
 	s.discover.Logout()

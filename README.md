@@ -17,7 +17,7 @@
 		err := k.Call(k.GetServerId(), "User.Login", []byte("hi kofa"))
 
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 		}
 
 	}()
@@ -27,7 +27,7 @@
     }
 
     func (u *User) Login(request kface.IRequest) {
-	    fmt.Println(request.GetProducer())
+	    log.Println(request.GetProducer())
     }
 
     func (u *User) Reg(request kface.IRequest) {

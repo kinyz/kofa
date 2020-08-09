@@ -2,7 +2,6 @@ package ikofa
 
 import (
 	"context"
-	"fmt"
 	"github.com/Shopify/sarama"
 	"github.com/golang/protobuf/proto"
 	"kofa/kofa"
@@ -43,7 +42,7 @@ func (r *Router) StartListen(addr, topic []string, group string, offset int64) f
 	client, err := sarama.NewConsumerGroup(addr, group, config)
 	//client := r.IConsumer.GetConsumerGroup()
 	if err != nil {
-		fmt.Println("[消息监听组]: ", topic, " 启动失败", err)
+		log.Println("[消息监听组]: ", topic, " 启动失败", err)
 		return nil
 	}
 
@@ -56,8 +55,8 @@ func (r *Router) StartListen(addr, topic []string, group string, offset int64) f
 			wg.Done()
 		}()
 		for {
-			//fmt.Println(r.Topic)
-			//fmt.Println("[消息监听组]: ", []string{"test_go"}, group ,addr,offset)
+			//log.Println(r.Topic)
+			//log.Println("[消息监听组]: ", []string{"test_go"}, group ,addr,offset)
 
 			if err := client.Consume(ctx, topic, &consumer); err != nil {
 				log.Fatalf("Error from consumer: %v", err)
@@ -71,14 +70,14 @@ func (r *Router) StartListen(addr, topic []string, group string, offset int64) f
 		}
 	}()
 	<-consumer.ready
-	fmt.Println("[消息监听组]: ", topic, " 已开启监听")
+	log.Println("[消息监听组]: ", topic, " 已开启监听")
 	return func() {
 		cancel()
 		wg.Wait()
 		if err := client.Close(); err != nil {
-			fmt.Println("Error closing client")
+			log.Println("Error closing client")
 		}
-		fmt.Println("[消息监听组]: ", topic, " 已关闭监听")
+		log.Println("[消息监听组]: ", topic, " 已关闭监听")
 	}
 }
 
@@ -88,10 +87,10 @@ func (r *Router) AddRouter(msgId uint64, serverId, topic, alias string, obj inte
 	for i, _ := range param {
 		r.param[alias][i+1] = reflect.ValueOf(param[i])
 		//name:=reflect.TypeOf(param[i])
-		//fmt.Println(name.Name())
+		//log.Println(name.Name())
 	}
 	ref := reflect.TypeOf(obj)
-	fmt.Println("------add router", alias, "--------")
+	log.Println("------add router", msgId, alias, "--------")
 	r.obj[alias] = obj
 	for i := 1; i < ref.NumMethod()+1; i++ {
 		//path:=strings.ToLower(name+"."+ref.Method(i).Name)//转换路径为全小写
@@ -99,7 +98,7 @@ func (r *Router) AddRouter(msgId uint64, serverId, topic, alias string, obj inte
 		s := &apis.Service{MsgId: msgId + uint64(i), ServerId: serverId, Topic: topic, Alias: alias, Method: ref.Method(i - 1).Name}
 		r.serviceMap[msgId+uint64(i)] = s
 		r.kofa.discover.Add(s)
-		//fmt.Println("add msg ",msgId+uint64(i))
+		//log.Println("add msg ",msgId+uint64(i))
 	}
 }
 func (r *Router) CustomHandle(kafka kofa.IKafkaRequest) {

@@ -3,6 +3,7 @@ package ikofa
 import (
 	"fmt"
 	"github.com/Shopify/sarama"
+	"log"
 	"time"
 )
 
@@ -15,12 +16,12 @@ func NewIProducer(addr []string) *Producer {
 	p := &Producer{}
 	err := p.NewAsyncProducer(addr)
 	if err != nil {
-		fmt.Println("kafka producer conn err :", err)
+		log.Println("kafka producer conn err :", err)
 		return nil
 	}
 	err = p.NewSyncProducer(addr)
 	if err != nil {
-		fmt.Println("kafka producer conn err :", err)
+		log.Println("kafka producer conn err :", err)
 		return nil
 	}
 	return p
@@ -34,7 +35,7 @@ func (p *Producer) NewSyncProducer(addr []string) error {
 	config.Version = sarama.V2_3_0_0
 	sync, err := sarama.NewSyncProducer(addr, config)
 	if err != nil {
-		//fmt.Println("[ERROR]:NewSyncProducer fail! err=" + err.Error())
+		//log.Println("[ERROR]:NewSyncProducer fail! err=" + err.Error())
 		return err
 	}
 	p.SyncProducer = sync
@@ -48,7 +49,7 @@ func (p *Producer) NewAsyncProducer(addr []string) error {
 	config.Version = sarama.V2_3_0_0
 	async, err := sarama.NewAsyncProducer(addr, config)
 	if err != nil {
-		//	fmt.Println("[ERROR]:NewAsyncProducer fail! err=" + err.Error())
+		//	log.Println("[ERROR]:NewAsyncProducer fail! err=" + err.Error())
 		return err
 	}
 	p.AsyncProducer = async
@@ -58,7 +59,7 @@ func (p *Producer) NewAsyncProducer(addr []string) error {
 // AsyncSendMsg 同步生产者
 // 返回 part, offset, err
 func (p *Producer) Sync(topic string, key, data []byte, headers ...sarama.RecordHeader) (int32, int64, error) {
-	//fmt.Println("sync",headers)
+	//log.Println("sync",headers)
 
 	msg := &sarama.ProducerMessage{
 		Topic:     topic,
@@ -81,7 +82,7 @@ func (p *Producer) Sync(topic string, key, data []byte, headers ...sarama.Record
 // 并发量大时，必须采用这种方式
 func (p *Producer) Async(topic string, key, data []byte, headers ...sarama.RecordHeader) {
 	async := p.GetAsyncProducer()
-	//fmt.Println("async",headers)
+	//log.Println("async",headers)
 	go func(as sarama.AsyncProducer) {
 		errors := as.Errors()
 		success := as.Successes()
@@ -89,7 +90,7 @@ func (p *Producer) Async(topic string, key, data []byte, headers ...sarama.Recor
 			select {
 			case err := <-errors:
 				if err != nil {
-					fmt.Println(err)
+					log.Println(err)
 				}
 			case <-success:
 			}
@@ -114,12 +115,12 @@ func (p *Producer) GetAsyncProducer() sarama.AsyncProducer {
 }
 func (p *Producer) CloseAsyncProducer() {
 	if err := p.AsyncProducer.Close(); err != nil {
-		fmt.Println("CloseAsyncProducer Fail err=", err)
+		log.Println("CloseAsyncProducer Fail err=", err)
 	}
 
 }
 func (p *Producer) CloseSyncProducer() {
 	if err := p.SyncProducer.Close(); err != nil {
-		fmt.Println("CloseSyncProducer Fail err=", err)
+		log.Println("CloseSyncProducer Fail err=", err)
 	}
 }
