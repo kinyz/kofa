@@ -4,15 +4,15 @@ package apis;
 
 // Service包
 message Service{
-  string  Topic = 1;  //  消费主题
-  string  Alias = 2;  //  别名
-  string  Method = 3;  //  调用方法
-  string  ServerId = 4;  //  服务器ID
+  uint64  MsgId = 1;// MsgId
+  string  Topic = 2;  //  消费主题
+  string  Alias = 3;  //  别名
+  string  Method = 4;  //  调用方法
+  string  ServerId = 5;  //  服务器ID
+  uint32  Level = 6; // 调用等级
 }
 
 message Call{
-  string  Producer = 1;  //  生产者
-  string  Alias = 2;  //  别名
-  string  Method = 3;  //  调用方法
-
+  uint64  MsgId = 1;   // MsgId
+  string  Producer = 2;   // 生产者
 }

@@ -1,14 +1,17 @@
 package kofa
 
 import (
+	"github.com/Shopify/sarama"
 	"time"
 )
 
 type Request interface {
 	GetProducer() string
+	GetMsgId() uint64
 	GetData() []byte
+	GetKey() string
 	GetMessage() Message
-	Call(alias, method string, data []byte, service ...string) error
+	Call(msgId uint64, key string, data []byte, topic ...string) error
 }
 
 type IKafkaRequest interface {
@@ -23,4 +26,5 @@ type Message interface {
 	GetPart() int32
 	GetTimestamp() time.Time
 	GetBlockTimestamp() time.Time
+	GetHeaders() []*sarama.RecordHeader
 }

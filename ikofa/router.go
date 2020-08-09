@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/Shopify/sarama"
 	"github.com/golang/protobuf/proto"
-	kofa2 "kofa/kofa"
+	"kofa/kofa"
 	apis "kofa/pd"
 	"log"
 	"reflect"
@@ -16,10 +16,11 @@ type Router struct {
 	obj   map[string]interface{}
 	param map[string][]reflect.Value
 	//methodMap map[string][]string
-	kreq       kofa2.IKafkaRequest
+	kreq       kofa.IKafkaRequest
 	c          bool
-	serviceMap map[string][]*apis.Service
-	kofa       *Server
+	serviceMap map[uint64]*apis.Service
+
+	kofa *Server
 }
 
 func NewRouter(kofa *Server) *Router {
@@ -27,7 +28,7 @@ func NewRouter(kofa *Server) *Router {
 		obj:   make(map[string]interface{}),
 		param: make(map[string][]reflect.Value),
 		//	methodMap: make(map[string][]string),
-		serviceMap: make(map[string][]*apis.Service),
+		serviceMap: make(map[uint64]*apis.Service),
 		kofa:       kofa,
 	}
 }
@@ -81,7 +82,7 @@ func (r *Router) StartListen(addr, topic []string, group string, offset int64) f
 	}
 }
 
-func (r *Router) AddRouter(serverId, topic, alias string, obj interface{}, param ...interface{}) {
+func (r *Router) AddRouter(msgId uint64, serverId, topic, alias string, obj interface{}, param ...interface{}) {
 	r.param[alias] = make([]reflect.Value, len(param)+1)
 
 	for i, _ := range param {
@@ -91,22 +92,21 @@ func (r *Router) AddRouter(serverId, topic, alias string, obj interface{}, param
 	}
 	ref := reflect.TypeOf(obj)
 	fmt.Println("------add router", alias, "--------")
-	for i := 0; i < ref.NumMethod(); i++ {
+	r.obj[alias] = obj
+	for i := 1; i < ref.NumMethod()+1; i++ {
 		//path:=strings.ToLower(name+"."+ref.Method(i).Name)//转换路径为全小写
-		path := alias + "." + ref.Method(i).Name
-		s := &apis.Service{ServerId: serverId, Topic: topic, Alias: alias, Method: ref.Method(i).Name}
-		r.serviceMap[alias] = append(r.serviceMap[alias], s)
-		r.obj[path] = obj
+		//path := alias + "." + ref.Method(i).Name
+		s := &apis.Service{MsgId: msgId + uint64(i), ServerId: serverId, Topic: topic, Alias: alias, Method: ref.Method(i - 1).Name}
+		r.serviceMap[msgId+uint64(i)] = s
 		r.kofa.discover.Add(s)
-		//r.methodMap[alias] = append(r.methodMap[alias], path)
-		fmt.Println("add method: ", path)
+		//fmt.Println("add msg ",msgId+uint64(i))
 	}
 }
-func (r *Router) CustomHandle(kafka kofa2.IKafkaRequest) {
+func (r *Router) CustomHandle(kafka kofa.IKafkaRequest) {
 	r.kreq = kafka
 	r.c = true
 }
-func (r *Router) GetServiceMap() map[string][]*apis.Service {
+func (r *Router) GetServiceMap() map[uint64]*apis.Service {
 	return r.serviceMap
 }
 
@@ -131,34 +131,41 @@ func (consumer *Consumer) Cleanup(sarama.ConsumerGroupSession) error {
 // ConsumeClaim must start a consumer loop of ConsumerGroupClaim's Messages().
 func (consumer *Consumer) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	for msg := range claim.Messages() {
-		call := &apis.Call{}
-		err := proto.UnmarshalMerge(msg.Key, call)
 
-		if err != nil {
+		if len(msg.Headers) > 0 {
+			call := &apis.Call{}
+			err := proto.UnmarshalMerge(msg.Headers[0].Key, call)
+			if err != nil {
+				if consumer.router.c {
+					consumer.router.kreq.CustomHandle(&KafkaMessage{
+						msg: msg,
+					})
+				}
+			} else {
+				service := consumer.router.serviceMap[call.MsgId]
+				if consumer.router.obj[service.Alias] == nil {
+					session.MarkMessage(msg, "")
+					break
+				}
+				req := &KRequest{
+					msg:  msg,
+					call: call,
+					kofa: consumer.router.kofa,
+				}
+				consumer.router.param[service.Alias][0] = reflect.ValueOf(req)
+				if consumer.router.obj[service.Alias] != nil {
+					reflect.ValueOf(consumer.router.obj[service.Alias]).MethodByName(service.Method).Call(consumer.router.param[service.Alias])
+				}
+
+			}
+		} else {
 			if consumer.router.c {
 				consumer.router.kreq.CustomHandle(&KafkaMessage{
 					msg: msg,
 				})
 			}
-		} else {
-			path := call.Alias + "." + call.Method
-			if consumer.router.obj[path] == nil {
-				fmt.Println("not find method 2:", path)
-				session.MarkMessage(msg, "")
-				break
-			}
-			req := &KRequest{
-				msg:      msg,
-				producer: call.Producer,
-				kofa:     consumer.router.kofa,
-			}
-			consumer.router.param[call.Alias][0] = reflect.ValueOf(req)
-			if consumer.router.obj[path] != nil {
-				reflect.ValueOf(consumer.router.obj[path]).MethodByName(call.Method).Call(consumer.router.param[call.Alias])
-			}
-
-			session.MarkMessage(msg, "")
 		}
+		session.MarkMessage(msg, "")
 
 	}
 	return nil

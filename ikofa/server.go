@@ -3,6 +3,7 @@ package ikofa
 import (
 	"errors"
 	"fmt"
+	"github.com/Shopify/sarama"
 	"github.com/golang/protobuf/proto"
 	"github.com/satori/go.uuid"
 	"kofa/kofa"
@@ -43,16 +44,18 @@ func NewServer(serviceName string, offset int64, kafkaAddr []string, group bool)
 	return s
 }
 
-func (s *Server) AddRouter(alias string, obj interface{}, param ...interface{}) {
-	s.router.AddRouter(s.serverId, s.topic, alias, obj, param...)
+func (s *Server) AddRouter(msgId uint64, alias string, obj interface{}, param ...interface{}) {
+	s.router.AddRouter(msgId, s.serverId, s.topic, alias, obj, param...)
 }
 func (s *Server) CustomHandle(kafka kofa.IKafkaRequest) {
 	s.router.CustomHandle(kafka)
 }
 func (s *Server) Serve() {
+
+	s.closeFun = s.router.StartListen(s.addr, []string{s.topic}, s.group, s.offset)
 	s.discover.Register(ServiceDiscoveryTopic)
 	s.discover.CheckAllService()
-	s.closeFun = s.router.StartListen(s.addr, []string{s.topic}, s.group, s.offset)
+
 	sigs := make(chan os.Signal, 1)
 	s.done = make(chan bool, 1)
 
@@ -77,17 +80,20 @@ func (s *Server) Close() {
 
 }
 
-func (s *Server) Call(alias, method string, data []byte, service ...string) error {
-	if s.discover.GetTopicByMethod(alias, method) == "" {
-		return errors.New("not find method:" + alias + "." + method)
+func (s *Server) Call(msgId uint64, key string, data []byte, topic ...string) error {
+	service, ok := s.discover.GetServices()[msgId]
+
+	if !ok {
+		return errors.New("not find msgId ")
 	}
-	call, _ := proto.Marshal(&apis.Call{Alias: alias, Method: method, Producer: s.serverId})
-	if len(service) <= 0 {
-		s.send.Async(s.discover.GetTopicByMethod(alias, method), call, data)
+
+	call, _ := proto.Marshal(&apis.Call{MsgId: msgId, Producer: s.serverId})
+	if len(topic) <= 0 {
+		s.send.Async(service.Topic, []byte(key), data, sarama.RecordHeader{Key: call})
 		return nil
 	}
-	for _, v := range service {
-		s.send.Async(v, call, data)
+	for _, v := range topic {
+		s.send.Async(v, []byte(key), data, sarama.RecordHeader{Key: call})
 	}
 	return nil
 }

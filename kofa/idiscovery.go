@@ -6,6 +6,5 @@ type IDiscovery interface {
 	CheckAllService()
 	Logout()
 	Close()
-	GetTopicByMethod(alias string, method string) string
 	GetMethodByTopic(topic string) []string
 }

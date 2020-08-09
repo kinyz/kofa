@@ -3,19 +3,25 @@ package ikofa
 import (
 	"github.com/Shopify/sarama"
 	"kofa/kofa"
+	apis "kofa/pd"
 	"time"
 )
 
 type KRequest struct {
-	msg      *sarama.ConsumerMessage
-	producer string
-	kofa     kofa.IServer
+	msg  *sarama.ConsumerMessage
+	call *apis.Call
+	kofa kofa.IServer
 }
 
 func (r *KRequest) GetProducer() string {
-	return r.producer
+	return r.call.Producer
 }
-
+func (r *KRequest) GetMsgId() uint64 {
+	return r.call.MsgId
+}
+func (r *KRequest) GetKey() string {
+	return string(r.msg.Key)
+}
 func (r *KRequest) GetData() []byte {
 	return r.msg.Value
 }
@@ -24,8 +30,8 @@ func (r *KRequest) GetMessage() kofa.Message {
 		msg: r.msg,
 	}
 }
-func (r *KRequest) Call(alias, method string, data []byte, service ...string) error {
-	return r.kofa.Call(alias, method, data, service...)
+func (r *KRequest) Call(msgId uint64, key string, data []byte, topic ...string) error {
+	return r.kofa.Call(msgId, key, data, topic...)
 }
 
 type KafkaMessage struct {
@@ -55,4 +61,8 @@ func (k *KafkaMessage) GetTimestamp() time.Time {
 
 func (k *KafkaMessage) GetBlockTimestamp() time.Time {
 	return k.msg.BlockTimestamp
+}
+
+func (k *KafkaMessage) GetHeaders() []*sarama.RecordHeader {
+	return k.msg.Headers
 }

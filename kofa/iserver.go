@@ -1,11 +1,11 @@
 package kofa
 
 type IServer interface {
-	AddRouter(alias string, obj interface{}, param ...interface{})
+	AddRouter(msgId uint64, alias string, obj interface{}, param ...interface{})
 	CustomHandle(kafka IKafkaRequest)
 	Serve()
 	Close()
 	Send() ISend
-	Call(alias, method string, data []byte, service ...string) error
+	Call(msgId uint64, key string, data []byte, topic ...string) error
 	GetServerId() string
 }

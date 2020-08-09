@@ -57,13 +57,15 @@ func (p *Producer) NewAsyncProducer(addr []string) error {
 
 // AsyncSendMsg 同步生产者
 // 返回 part, offset, err
-func (p *Producer) Sync(topic string, key, data []byte) (int32, int64, error) {
+func (p *Producer) Sync(topic string, key, data []byte, headers ...sarama.RecordHeader) (int32, int64, error) {
+	//fmt.Println("sync",headers)
 
 	msg := &sarama.ProducerMessage{
 		Topic:     topic,
 		Key:       sarama.ByteEncoder(key),
 		Value:     sarama.ByteEncoder(data),
 		Timestamp: time.Time{},
+		Headers:   headers,
 	}
 	part, offset, err := p.SyncProducer.SendMessage(msg)
 	if err != nil {
@@ -77,8 +79,9 @@ func (p *Producer) Sync(topic string, key, data []byte) (int32, int64, error) {
 
 // AsyncSendMsg 异步生产者
 // 并发量大时，必须采用这种方式
-func (p *Producer) Async(topic string, key, data []byte) {
+func (p *Producer) Async(topic string, key, data []byte, headers ...sarama.RecordHeader) {
 	async := p.GetAsyncProducer()
+	//fmt.Println("async",headers)
 	go func(as sarama.AsyncProducer) {
 		errors := as.Errors()
 		success := as.Successes()
@@ -95,9 +98,10 @@ func (p *Producer) Async(topic string, key, data []byte) {
 
 	msg := &sarama.ProducerMessage{
 		Topic:     topic,
-		Key:       sarama.ByteEncoder(key),
+		Key:       sarama.StringEncoder(key),
 		Value:     sarama.ByteEncoder(data),
 		Timestamp: time.Time{},
+		Headers:   headers,
 	}
 	async.Input() <- msg
 }
