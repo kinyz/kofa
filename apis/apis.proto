@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package apis;
+
+
+
+// Service包
+message Service{
+  uint64  MsgId = 1;// MsgId
+  string  Topic = 2;  //  Topic
+  string  Alias = 3;  //  别名
+  string  Method = 4;  //  调用方法
+  uint32  Level = 5; // 调用等级
+}
+
+
+message MessageHeader{
+  uint64 MsgId =1;
+  string Producer=2;
+  map<string,bytes> Property =3;//属性
+  int64 Timestamp=4;
+}
