@@ -8,7 +8,7 @@
 		"Test", //服务名
 		true, //是否加入组
 		prehandle.Kafka([]string{"10.43.123.172:9092"}, prehandle.NewOffset)//通信接口 目前使用kafka 可自定义
-		//可增加requet的参数
+		//可增加自定义服务发现模块 框架提供内置
 		)
 
 - 创建一个结构体并提供服务方法
@@ -36,6 +36,7 @@
 		"Account", //路由别名 alias 
 		5, //服务级别
 		&Account{},//前面定义好的结构体
+		//可增加requet的参数
 		)
 
 - 启动服务
