@@ -6,7 +6,7 @@
 
 		s := kofa.New(
 		"Test", //服务名
-		true, //是否假如组
+		true, //是否加入组
 		prehandle.Kafka([]string{"10.43.123.172:9092"}, prehandle.NewOffset)//通信接口 目前使用kafka 可自定义
 		//可增加requet的参数
 		)
