@@ -1,41 +1,46 @@
 package main
 
 import (
-	"kofa/ikofa"
-	"kofa/kofa"
+	"kofa"
+	"kofa/prehandle"
 	"log"
+	"time"
 )
-
-const ServiceName = "Kofa"
 
 func main() {
 
-	k := ikofa.NewServer(ServiceName, ikofa.NewOffset, []string{"49.22.22.22:2222"}, true)
-	k.AddRouter(2000, "User", &User{})
+	s := kofa.New("Test", true, prehandle.Kafka([]string{"10.43.123.172:9092"}, prehandle.NewOffset))
 
-	k.CustomHandle(&Kafka{})
+	a := &Account{}
+	s.AddRouter(2000, "Account", 5, a)
 
-	k.Serve()
+	s.Serve()
+}
+
+type Account struct {
+}
+
+func (u *Account) Oauth(request kofa.Request) {
+
+	log.Println("call logout oauth:", time.Now().UnixNano()-request.Message().Header().GetTimesTamp())
+
+}
+func (u *Account) Logout(request kofa.Request) {
+
+	log.Println("call logout us:", time.Now().UnixNano()-request.Message().Header().GetTimesTamp())
+	request.Message().Header().SetMsgId(3001)
+	request.Send(request.Message())
+
+	//request.Send(request.Message())
+	//log.Println(time.Now().UnixNano()/ 1e6)
+
+}
+func (u *Account) Add(request kofa.Request, kofa kofa.Server) {
+	log.Println("call logout add:", time.Now().UnixNano()-request.Message().Header().GetTimesTamp())
 
 }
 
-type User struct {
-}
+func (u *Account) Check(request kofa.Request, kofa kofa.Server) {
+	log.Println("call logout check:", time.Now().UnixNano()-request.Message().Header().GetTimesTamp())
 
-func (u *User) Login(request kofa.Request) {
-
-	log.Println(request.GetProducer())
-
-}
-
-func (u *User) Reg(request kofa.Request) {
-	log.Println(request.GetMsgId())
-
-}
-
-type Kafka struct {
-}
-
-func (k Kafka) CustomHandle(msg kofa.Message) {
-	log.Println(msg.GetTopic(), msg.GetTopic())
 }
